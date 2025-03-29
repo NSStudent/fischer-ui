@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "FischerUI",
+    platforms: [.iOS(.v18)],
     products: [
         .library(
             name: "FischerUI",
