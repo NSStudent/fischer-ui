@@ -17,9 +17,8 @@ struct ContentView: View {
                 .foregroundStyle(.tint)
             Text("Hello FischerUI, version \(Constants.version)")
             ZStack {
-                SquareBackground(square: .a2, theme: appTheme.boardTheme)
-            
-                PieceImageView(piece: .init(knight: .black), pieceTheme: appTheme.pieceTheme)
+                SquareBackground(square: .a1, theme: appTheme.boardTheme)
+//                PieceImageView(piece: .init(knight: .black), pieceTheme: appTheme.pieceTheme)
             }
             .frame(width: 50, height: 50)
         }

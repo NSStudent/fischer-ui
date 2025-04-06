@@ -11,26 +11,43 @@ import FischerCore
 public struct SquareBackground: View {
     let square: Square
     let theme: BoardTheme
+    let isFlipped: Bool
     
     public init(
         square: Square,
         theme: BoardTheme,
+        isFlipped: Bool
     ) {
         self.square = square
         self.theme = theme
+        self.isFlipped = isFlipped
     }
     
     public var body: some View {
         Rectangle()
-            .fill(color(for: square))
+            .fill(theme.color(for: square))
             .aspectRatio(1, contentMode: .fill)
+            .if(shouldShowFileAnnotation(square)) { view in
+                view.modifier(SquareFileAnnotation(square: square, theme: theme))
+            }
+            .if(shouldShowRankAnnotation(square)) { view in
+                view.modifier(SquareRankAnnotation(square: square, theme: theme))
+            }
     }
     
-    public func color(for square: Square) -> Color {
-        square.color == .dark ? theme.darkColor : theme.ligthColor
+    public func shouldShowFileAnnotation(_ square: Square) -> Bool {
+        let rankAnnotiation: Rank = isFlipped ? .eight : .one
+        guard theme.isCoordinatesVisible && square.rank == rankAnnotiation else { return false }
+        return true
+    }
+    
+    public func shouldShowRankAnnotation(_ square: Square) -> Bool {
+        let fileAnntation: File = isFlipped ? .h : .a
+        guard theme.isCoordinatesVisible && square.file == fileAnntation else { return false }
+        return true
     }
 }
 
 #Preview(traits: .fixedLayout(width: 100, height: 100)) {
-    SquareBackground(square: .a2, theme: BoardTheme.brown)
+    SquareBackground(square: .a2, theme: BoardTheme.brown, isFlipped: false)
 }
