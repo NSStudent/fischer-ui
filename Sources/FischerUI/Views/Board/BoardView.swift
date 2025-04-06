@@ -8,33 +8,87 @@
 import FischerCore
 import SwiftUI
 
-struct BoardView: View {
+public struct BoardView: View {
     @State var isFlipped: Bool = false
+    @State var draggedPiece: Piece? = nil
+    @State var dragOffset: CGSize = CGSizeZero
+    @State var initialSquare: Square? = nil
     let boardTheme: BoardTheme = .green
     let pieceTheme: PieceTheme = .cburnett
     let game = try! Game.init(position: Game.Position(fen: "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 5")!)
     public let columns: [GridItem] = .init(repeating: .chessFile, count: 8)
-    var body: some View {
+    
+    public init() {}
+    
+    public var body: some View {
         VStack(alignment: .center) {
-            LazyVGrid(columns: columns, spacing: 0) {
-                ForEach(currentGridCollection()) { square in
-                    ZStack {
-                        SquareBackground(square: square, theme: boardTheme, isFlipped: isFlipped)
-                        if let piece = piece(in: square) {
-                            PieceImageView(piece: piece, pieceTheme: pieceTheme)
+            ZStack {
+                LazyVGrid(columns: columns, spacing: 0) {
+                    ForEach(currentGridCollection()) { square in
+                        ZStack {
+                            SquareBackground(square: square, theme: boardTheme, isFlipped: isFlipped)
+                            if let currentPiece = piece(in: square), !isDraggedPiece(currentPiece, square: square)  {
+                                PieceImageView(piece: currentPiece, pieceTheme: pieceTheme)
+                                    .offset(isDraggedPiece(currentPiece, square: square) ? dragOffset : CGSizeZero)
+                                    .zIndex(isDraggedFrom(square: square) ? 100 : Double(square.rawValue))
+                                    .gesture(
+                                        DragGesture()
+                                            .onChanged({ gesture in
+                                                draggedPiece = currentPiece
+                                                initialSquare = square
+                                                dragOffset = gesture.translation
+                                            })
+                                    )
+                            } else {
+                                Rectangle().fill(Color.clear)
+                            }
                         }
                     }
                 }
-            }
-            Button {
-                withAnimation {
-                    isFlipped.toggle()
+                LazyVGrid(columns: columns, spacing: 0) {
+                    ForEach(currentGridCollection()) { square in
+                        if let currentPiece = piece(in: square), isDraggedPiece(currentPiece, square: square)  {
+                            PieceImageView(piece: currentPiece, pieceTheme: pieceTheme)
+                                .scaleEffect(1.3)
+                              .offset(dragOffset)
+                              .gesture(
+                                DragGesture()
+                                    .onChanged({ gesture in
+                                        draggedPiece = currentPiece
+                                        initialSquare = square
+                                        dragOffset = gesture.translation
+                                    })
+                                    .onEnded({ gesture in
+                                        draggedPiece = nil
+                                        initialSquare = nil
+                                        dragOffset = .zero
+                                    })
+                              )
+                        } else {
+                            Rectangle().fill(Color.clear)
+                        }
+                    }
                 }
+                
+            }
+            
+            
+        
+            Button {
+                isFlipped.toggle()
             } label: {
                 Text("flip")
             }
 
         }
+    }
+    
+    func isDraggedPiece(_ piece: Piece, square: Square) -> Bool {
+        piece.fenName == draggedPiece?.fenName && square == initialSquare
+    }
+    
+    func isDraggedFrom(square: Square) -> Bool {
+        square == initialSquare
     }
     
     func piece(in square: Square) -> Piece?{
