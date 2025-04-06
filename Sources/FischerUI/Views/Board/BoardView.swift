@@ -13,6 +13,7 @@ public struct BoardView: View {
     @State var draggedPiece: Piece? = nil
     @State var dragOffset: CGSize = CGSizeZero
     @State var initialSquare: Square? = nil
+    @State var toSquare: Square? = nil
     let boardTheme: BoardTheme = .green
     let pieceTheme: PieceTheme = .cburnett
     let game = try! Game.init(position: Game.Position(fen: "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 5")!)
@@ -27,58 +28,68 @@ public struct BoardView: View {
                     ForEach(currentGridCollection()) { square in
                         ZStack {
                             SquareBackground(square: square, theme: boardTheme, isFlipped: isFlipped)
-                            if let currentPiece = piece(in: square), !isDraggedPiece(currentPiece, square: square)  {
-                                PieceImageView(piece: currentPiece, pieceTheme: pieceTheme)
-                                    .offset(isDraggedPiece(currentPiece, square: square) ? dragOffset : CGSizeZero)
-                                    .zIndex(isDraggedFrom(square: square) ? 100 : Double(square.rawValue))
-                                    .gesture(
-                                        DragGesture()
-                                            .onChanged({ gesture in
-                                                draggedPiece = currentPiece
-                                                initialSquare = square
-                                                dragOffset = gesture.translation
-                                            })
-                                    )
-                            } else {
-                                Rectangle().fill(Color.clear)
-                            }
                         }
                     }
                 }
+                
                 LazyVGrid(columns: columns, spacing: 0) {
                     ForEach(currentGridCollection()) { square in
-                        if let currentPiece = piece(in: square), isDraggedPiece(currentPiece, square: square)  {
+                        if let currentPiece = piece(in: square)  {
                             PieceImageView(piece: currentPiece, pieceTheme: pieceTheme)
-                                .scaleEffect(1.3)
-                              .offset(dragOffset)
-                              .gesture(
-                                DragGesture()
-                                    .onChanged({ gesture in
-                                        draggedPiece = currentPiece
-                                        initialSquare = square
-                                        dragOffset = gesture.translation
-                                    })
-                                    .onEnded({ gesture in
-                                        draggedPiece = nil
-                                        initialSquare = nil
-                                        dragOffset = .zero
-                                    })
-                              )
+                                .offset(isDraggedPiece(currentPiece, square: square) ? dragOffset : CGSizeZero)
+                                .opacity(isDraggedPiece(currentPiece, square: square) ? 0 : 1)
+                                .zIndex(isDraggedFrom(square: square) ? 100 : 0)
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged({ gesture in
+                                            draggedPiece = currentPiece
+                                            initialSquare = square
+                                            dragOffset = gesture.translation
+                                        })
+                                        .onEnded({ gesture in
+                                            draggedPiece = nil
+                                            initialSquare = nil
+                                            dragOffset = .zero
+                                        })
+                                )
                         } else {
                             Rectangle().fill(Color.clear)
                         }
                     }
                 }
                 
+                if let draggedPiece, let square = initialSquare,
+                   let index = currentGridCollection().firstIndex(of: square) {
+                    GeometryReader { geo in
+                        let _ = print(geo.size)
+                        let min = min(geo.size.width, geo.size.height)
+                        let gridSize = geo.size
+                        let squareSize = min / 8
+                        let row = index / 8
+                        let col = index % 8
+                        let x = CGFloat(col) * squareSize
+                        let y = CGFloat(row) * squareSize
+                        
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.2))
+                                .scaleEffect(1.3)
+                            PieceImageView(piece: draggedPiece, pieceTheme: pieceTheme)
+                        }
+                        .frame(width: squareSize, height: squareSize)
+//                        .scaleEffect(1.3)
+                        .position(x: x + squareSize / 2, y: y )
+                        .offset(dragOffset)
+                        .zIndex(999)
+                    }
+                }
             }
             
-            
-        
-            Button {
-                isFlipped.toggle()
-            } label: {
-                Text("flip")
-            }
+//            Button {
+//                isFlipped.toggle()
+//            } label: {
+//                Text("flip")
+//            }
 
         }
     }
@@ -101,7 +112,7 @@ public struct BoardView: View {
     }
 }
 
-#Preview(traits: .fixedLayout(width: 500, height: 600)){
+#Preview(traits: .fixedLayout(width: 500, height: 500)){
     BoardView()
 }
 
