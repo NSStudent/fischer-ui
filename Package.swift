@@ -5,15 +5,28 @@ import PackageDescription
 
 let package = Package(
     name: "FischerUI",
-    platforms: [.iOS(.v18)],
+    platforms: [
+        .iOS(.v18),
+        .macOS(.v10_15)
+    ],
     products: [
         .library(
             name: "FischerUI",
             targets: ["FischerUI"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/NSStudent/fischer-core.git", from: "0.1.0")
+    ],
     targets: [
         .target(
-            name: "FischerUI"),
+            name: "FischerUI",
+            dependencies: [
+                   .product(name: "FischerCore", package: "fischer-core")
+               ],
+            resources: [
+                    .process("Assets.xcassets")
+                ]
+        ),
         .testTarget(
             name: "FischerUITests",
             dependencies: ["FischerUI"]

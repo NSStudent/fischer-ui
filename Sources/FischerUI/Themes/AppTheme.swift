@@ -11,13 +11,3 @@ struct AppTheme {
     let pieceTheme: PieceTheme
     let boardTheme: BoardTheme
 }
-
-struct BoardTheme {
-    let ligthColor: Color
-    let darkColor: Color
-}
-
-enum PieceTheme {
-    case merida
-    case cBrunnett
-}

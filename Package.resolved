@@ -1,0 +1,51 @@
+{
+  "originHash" : "3501c0f6aa39d8f694c702c25d650d28aa5195b02b0a59f684f2231af65fd365",
+  "pins" : [
+    {
+      "identity" : "fischer-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NSStudent/fischer-core.git",
+      "state" : {
+        "revision" : "dd9e16232c89518753029cf481f0da5ced00f5dd",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "swift-case-paths",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-case-paths",
+      "state" : {
+        "revision" : "19b7263bacb9751f151ec0c93ec816fe1ef67c7b",
+        "version" : "1.6.1"
+      }
+    },
+    {
+      "identity" : "swift-parsing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-parsing",
+      "state" : {
+        "revision" : "3432cb81164dd3d69a75d0d63205be5fbae2c34b",
+        "version" : "0.14.1"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax",
+      "state" : {
+        "revision" : "0687f71944021d616d34d922343dcef086855920",
+        "version" : "600.0.1"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "39de59b2d47f7ef3ca88a039dff3084688fe27f4",
+        "version" : "1.5.2"
+      }
+    }
+  ],
+  "version" : 3
+}
