@@ -5,7 +5,7 @@
 //  Created by Omar Megdadi on 5/4/25.
 //
 import FischerCore
-enum PieceTheme: String {
+public enum PieceTheme: String {
     case cburnett
     case merida
     case rhosgfx

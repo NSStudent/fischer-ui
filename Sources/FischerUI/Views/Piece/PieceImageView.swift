@@ -7,15 +7,21 @@
 import FischerCore
 import SwiftUI
 
-struct PieceImageView: View {
+public struct PieceImageView: View {
     let piece: Piece
     let pieceTheme: PieceTheme
+    
+    public init(piece: Piece, pieceTheme: PieceTheme) {
+        self.piece = piece
+        self.pieceTheme = pieceTheme
+    }
+    
     
     var imageName: String {
         pieceTheme.imageName(for: piece)
     }
     
-    var body: some View {
+    public var body: some View {
         Image(imageName, bundle: Bundle.module)
             .resizable()
             .aspectRatio(contentMode: .fit)

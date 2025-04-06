@@ -9,15 +9,15 @@ import SwiftUI
 import FischerCore
 
 public struct SquareBackground: View {
-    let theme: BoardTheme
     let square: Square
+    let theme: BoardTheme
     
     public init(
+        square: Square,
         theme: BoardTheme,
-        square: Square
     ) {
-        self.theme = theme
         self.square = square
+        self.theme = theme
     }
     
     public var body: some View {
@@ -32,5 +32,5 @@ public struct SquareBackground: View {
 }
 
 #Preview(traits: .fixedLayout(width: 100, height: 100)) {
-    SquareBackground(theme: BoardTheme.brown, square: .a2)
+    SquareBackground(square: .a2, theme: BoardTheme.brown)
 }

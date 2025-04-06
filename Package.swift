@@ -7,7 +7,7 @@ let package = Package(
     name: "FischerUI",
     platforms: [
         .iOS(.v18),
-        .macOS(.v10_15)
+        .macOS(.v14)
     ],
     products: [
         .library(

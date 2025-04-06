@@ -7,7 +7,17 @@
 
 import SwiftUI
 
-struct AppTheme {
-    let pieceTheme: PieceTheme
-    let boardTheme: BoardTheme
+public struct AppTheme {
+    public let pieceTheme: PieceTheme
+    public let boardTheme: BoardTheme
+    
+    public init(
+        pieceTheme: PieceTheme,
+        boardTheme: BoardTheme
+    ) {
+        self.pieceTheme = pieceTheme
+        self.boardTheme = boardTheme
+    }
+    
+    @MainActor public static let `default` = AppTheme(pieceTheme: .cburnett, boardTheme: .green)
 }
