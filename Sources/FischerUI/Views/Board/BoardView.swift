@@ -9,7 +9,7 @@ import FischerCore
 import SwiftUI
 
 struct BoardView: View {
-    let isFlipped: Bool = false
+    @State var isFlipped: Bool = false
     let boardTheme: BoardTheme = .green
     let pieceTheme: PieceTheme = .cburnett
     let game = try! Game.init(position: Game.Position(fen: "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 5")!)
@@ -26,6 +26,14 @@ struct BoardView: View {
                     }
                 }
             }
+            Button {
+                withAnimation {
+                    isFlipped.toggle()
+                }
+            } label: {
+                Text("flip")
+            }
+
         }
     }
     
@@ -39,7 +47,7 @@ struct BoardView: View {
     }
 }
 
-#Preview(traits: .fixedLayout(width: 500, height: 500)){
+#Preview(traits: .fixedLayout(width: 500, height: 600)){
     BoardView()
 }
 
