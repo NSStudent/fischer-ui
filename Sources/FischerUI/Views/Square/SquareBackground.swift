@@ -49,5 +49,5 @@ public struct SquareBackground: View {
 }
 
 #Preview(traits: .fixedLayout(width: 100, height: 100)) {
-    SquareBackground(square: .a2, theme: BoardTheme.brown, orientation: .whiteSite)
+    SquareBackground(square: .a2, theme: BoardTheme.brown, orientation: .whiteSide)
 }

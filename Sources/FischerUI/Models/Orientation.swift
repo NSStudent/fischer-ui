@@ -6,18 +6,18 @@
 //
 
 public enum Orientation {
-    case whiteSite
-    case blackSite
+    case whiteSide
+    case blackSide
     
     mutating func toggle() {
-        self = self == .whiteSite ? .blackSite : .whiteSite
+        self = self == .whiteSide ? .blackSide : .whiteSide
     }
     
     func isWhite() -> Bool {
-        self == .whiteSite
+        self == .whiteSide
     }
     
     func isblack() -> Bool {
-        self == .blackSite
+        self == .blackSide
     }
 }

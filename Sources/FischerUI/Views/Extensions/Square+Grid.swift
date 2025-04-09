@@ -10,9 +10,9 @@ import FischerCore
 extension Square {
     @MainActor static func gridCollection(with orientation: Orientation) -> [Square] {
         switch orientation {
-        case .whiteSite:
+        case .whiteSide:
             return Square.gridCollection
-        case .blackSite:
+        case .blackSide:
             return Square.flippedGridCollection
         }
     }

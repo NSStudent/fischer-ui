@@ -11,7 +11,7 @@ import SwiftUI
 @Observable
 @MainActor
 class BoardViewModel {
-    var orientation: Orientation = .whiteSite
+    var orientation: Orientation = .whiteSide
     var draggedPiece: Piece? = nil
     var dragOffset: CGSize = CGSizeZero
     var initialSquare: Square? = nil
@@ -45,11 +45,11 @@ public struct BoardView: View {
                 }
                 .frame(width: side, height: side)
             }
-            Button("Flip") {
-                viewModel.orientation.toggle()
-                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
-            }
+//            Button("Flip") {
+//                viewModel.orientation.toggle()
+//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+//            }
         }
     }
     
