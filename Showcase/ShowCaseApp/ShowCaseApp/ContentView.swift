@@ -11,10 +11,8 @@ import FischerUI
 struct ContentView: View {
     let appTheme: AppTheme = .default
     var body: some View {
-        VStack {
-            BoardView()
-        }
-        .padding()
+        BoardView()
+            .padding()
     }
 }
 

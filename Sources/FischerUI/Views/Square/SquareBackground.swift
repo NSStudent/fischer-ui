@@ -11,16 +11,16 @@ import FischerCore
 public struct SquareBackground: View {
     let square: Square
     let theme: BoardTheme
-    let isFlipped: Bool
+    let orientation: Orientation
     
     public init(
         square: Square,
         theme: BoardTheme,
-        isFlipped: Bool
+        orientation: Orientation
     ) {
         self.square = square
         self.theme = theme
-        self.isFlipped = isFlipped
+        self.orientation = orientation
     }
     
     public var body: some View {
@@ -36,18 +36,18 @@ public struct SquareBackground: View {
     }
     
     public func shouldShowFileAnnotation(_ square: Square) -> Bool {
-        let rankAnnotiation: Rank = isFlipped ? .eight : .one
+        let rankAnnotiation: Rank = orientation.isblack() ? .eight : .one
         guard theme.isCoordinatesVisible && square.rank == rankAnnotiation else { return false }
         return true
     }
     
     public func shouldShowRankAnnotation(_ square: Square) -> Bool {
-        let fileAnntation: File = isFlipped ? .h : .a
+        let fileAnntation: File = orientation.isblack() ? .h : .a
         guard theme.isCoordinatesVisible && square.file == fileAnntation else { return false }
         return true
     }
 }
 
 #Preview(traits: .fixedLayout(width: 100, height: 100)) {
-    SquareBackground(square: .a2, theme: BoardTheme.brown, isFlipped: false)
+    SquareBackground(square: .a2, theme: BoardTheme.brown, orientation: .whiteSite)
 }
