@@ -36,10 +36,9 @@ struct NAGView: View {
         let isOnTop = orientation.isblack() ? square.rank == 1 : square.rank == 8
         let isOnRight = orientation.isblack() ? square.file == .a : square.file == .h
         let deltaX = isOnRight ? squareSize / 4 : squareSize / 2
-        let deltaY = isOnTop ? squareSize / 4 : squareSize / 2
-        let deltaYOriented = orientation.isblack() ? deltaY : -deltaY
+        let deltaY = isOnTop ? -squareSize / 4 : -squareSize / 2
         let initialPoint = square.offset(orientation: orientation, squareSize: squareSize)
-        return CGPoint(x: initialPoint.x + deltaX, y: initialPoint.y + deltaYOriented)
+        return CGPoint(x: initialPoint.x + deltaX, y: initialPoint.y + deltaY)
     }
 }
 
@@ -79,7 +78,7 @@ struct NAGView: View {
             squareSize: 50
         )
 
-        ArrowView(fromSquare: .f1, toSquare: .c4, orientation: .whiteSide, squareSize: 50, color: .orange)
-        ArrowView(fromSquare: .b8, toSquare: .c6, orientation: .whiteSide, squareSize: 50, color: .purple)
+        ArrowView(fromSquare: .f1, toSquare: .c4, orientation: .whiteSide, squareSize: 50, color: .orange, strokeWidth: nil)
+        ArrowView(fromSquare: .b8, toSquare: .c6, orientation: .whiteSide, squareSize: 50, color: .purple, strokeWidth: nil)
     }
 }

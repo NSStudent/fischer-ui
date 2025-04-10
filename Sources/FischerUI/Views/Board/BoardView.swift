@@ -26,8 +26,10 @@ class BoardViewModel {
     var boardTheme: BoardTheme = .take
     var pieceTheme: PieceTheme = .cburnett
     var game = Game()
-    var pgnGame: PGNGame = PGNGame.mock
+    var pgnGame: PGNGame = PGNGame.mockNag
     var movements: [SANMove] = []
+    var nags: [NAG?] = []
+    var currentNag: NAG?
     var index = 0
     
     func didLoad() throws {
@@ -38,6 +40,12 @@ class BoardViewModel {
         movements = pgnGame.elements.map{ element in
             [element.whiteMove, element.blackMove]
         }.flatMap{$0}.compactMap{$0}
+        
+        nags = pgnGame.elements.map{ element in
+            [element.whiteEvaluation?.first, element.blackEvaluation?.first]
+        }.flatMap{$0}
+        
+        print(nags)
     }
     
     func next() {
@@ -51,6 +59,8 @@ class BoardViewModel {
         Move: \(move.description)
         """
         )
+        
+        currentNag = nags[index]
         try? game.execute(move: move)
         index += 1
     }
@@ -61,6 +71,7 @@ class BoardViewModel {
         undo Move: \(move.description)
         """)
         index -= 1
+        currentNag = nags[game.moveHistory.count > 0 ? game.moveHistory.count - 1 : 0]
     }
     
     func pieceInfo() -> [SquareInfo] {
@@ -92,18 +103,30 @@ public struct BoardView: View {
                     let side = min(geo.size.width, geo.size.height)
                     ZStack {
                         background()
+                            .animation(nil, value: viewModel.orientation)
                         piecesView(with: geo)
+                        lastMoveArrowView(with: geo)
                         draggedPieceView()
+                        nagView(with: geo)
                     }
                     .frame(width: side, height: side)
                 }
             }
             
             Button("Flip") {
-                viewModel.orientation.toggle()
+                withAnimation(.snappy) {
+                    viewModel.orientation.toggle()
+                }
+//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+            }
+            
+            Button("Change theme") {
                 viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
                 viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
             }
+            
+            
             Button("next Move") {
                 withAnimation(.snappy) {
                     viewModel.next()
@@ -154,6 +177,31 @@ public struct BoardView: View {
         }
     }
     
+    @ViewBuilder
+    func nagView(with geometry: GeometryProxy) -> some View {
+        let squareSize = squareWidth(in: geometry)
+        if let currentNag = viewModel.currentNag,
+           !currentNag.symbol.isEmpty,
+           let square = viewModel.game.moveHistory.last?.move.end{
+            NAGView(
+                nagSymbol: currentNag.symbol,
+                color: currentNag.color,
+                square: square,
+                orientation: viewModel.orientation,
+                squareSize: squareSize
+            )
+            .id(UUID())
+        }
+    }
+    
+    @ViewBuilder
+    func lastMoveArrowView(with geometry: GeometryProxy) -> some View {
+        let squareSize = squareWidth(in: geometry)
+        if let lastMove = viewModel.game.moveHistory.last?.move
+        {
+            ArrowView(fromSquare: lastMove.start, toSquare: lastMove.end, orientation: viewModel.orientation, squareSize: squareSize, color: .black, strokeWidth: 2)
+        }
+    }
 //    func piecesView(with geometry: GeometryProxy) -> some View {
 //        LazyVGrid(columns: columns, spacing: 0) {
 //            ForEach(Square.gridCollection(with: viewModel.orientation)) { square in

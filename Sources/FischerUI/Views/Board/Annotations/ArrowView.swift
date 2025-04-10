@@ -14,6 +14,7 @@ struct ArrowView: View {
     let orientation: Orientation
     let squareSize: CGFloat
     let color: Color
+    let strokeWidth: CGFloat?
     
     var body: some View {
         let startPoint = fromSquare.offset(orientation: orientation, squareSize: squareSize)
@@ -64,7 +65,7 @@ struct ArrowView: View {
             path.addLine(to: arrowLine2)
             path.closeSubpath()
         }
-        .strokedPath(StrokeStyle(lineWidth: squareSize * 0.15625, lineCap: .round, lineJoin: .miter))
+        .strokedPath(StrokeStyle(lineWidth: strokeWidth ?? squareSize * 0.15625, lineCap: .round, lineJoin: .miter))
         .foregroundColor(color)
     }
 }
@@ -72,7 +73,7 @@ struct ArrowView: View {
 #Preview(traits: .fixedLayout(width: 400, height: 400)) {
     ZStack {
         BoardView()
-        ArrowView(fromSquare: .b1, toSquare: .c3, orientation: .whiteSide, squareSize: 50, color: .orange)
+        ArrowView(fromSquare: .b1, toSquare: .c3, orientation: .whiteSide, squareSize: 50, color: .orange, strokeWidth: nil)
     }
 }
 
