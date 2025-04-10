@@ -14,4 +14,7 @@ extension Color {
     
     static let rhosgfxLight = Color("rhosgfxLight", bundle: .module)
     static let rhosgfxDark = Color("rhosgfxDark", bundle: .module)
+    
+    static let takeLight = Color("takeLight", bundle: .module)
+    static let takeDark = Color("takeDark", bundle: .module)
 }

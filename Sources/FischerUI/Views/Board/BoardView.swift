@@ -23,8 +23,8 @@ class BoardViewModel {
             }
         }
     }
-    var boardTheme: BoardTheme = .green
-    var pieceTheme: PieceTheme = .rhosgfx
+    var boardTheme: BoardTheme = .take
+    var pieceTheme: PieceTheme = .cburnett
     var game = try! Game.init(position: Game.Position(fen: "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 5")!)
 }
 

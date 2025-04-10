@@ -16,6 +16,7 @@ public struct BoardTheme {
     @MainActor public static let brown: BoardTheme = .init(ligthColor: .brownLight, darkColor: .brownDark, isCoordinatesVisible: true)
     @MainActor public static let green: BoardTheme = .init(ligthColor: .greenLight, darkColor: .greenDark, isCoordinatesVisible: true)
     @MainActor public static let rhosgfx: BoardTheme = .init(ligthColor: .rhosgfxLight, darkColor: .rhosgfxDark, isCoordinatesVisible: true)
+    @MainActor public static let take: BoardTheme = .init(ligthColor: .takeLight, darkColor: .takeDark, isCoordinatesVisible: true)
     
     public func color(for square: Square) -> Color {
         square.color == .dark ? self.darkColor : self.ligthColor
