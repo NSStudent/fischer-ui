@@ -1,13 +1,13 @@
 {
-  "originHash" : "3501c0f6aa39d8f694c702c25d650d28aa5195b02b0a59f684f2231af65fd365",
+  "originHash" : "20a1018acb470fb1c8085b5088a4ed2341cf9b0a166ddd6746f10bcc00bc8f16",
   "pins" : [
     {
       "identity" : "fischer-core",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/NSStudent/fischer-core.git",
       "state" : {
-        "revision" : "dd9e16232c89518753029cf481f0da5ced00f5dd",
-        "version" : "0.1.0"
+        "branch" : "feature/public-access",
+        "revision" : "f4c69104fa2193cb2dcb649eb64392ff4195b8a5"
       }
     },
     {

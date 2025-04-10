@@ -25,7 +25,58 @@ class BoardViewModel {
     }
     var boardTheme: BoardTheme = .take
     var pieceTheme: PieceTheme = .cburnett
-    var game = try! Game.init(position: Game.Position(fen: "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 5")!)
+    var game = Game()
+    var pgnGame: PGNGame = PGNGame.mock
+    var movements: [SANMove] = []
+    var index = 0
+    
+    func didLoad() throws {
+        if let fen = pgnGame.fen(), let position = Game.Position(fen: fen) {
+            game = try Game(position: position)
+        }
+        
+        movements = pgnGame.elements.map{ element in
+            [element.whiteMove, element.blackMove]
+        }.flatMap{$0}.compactMap{$0}
+    }
+    
+    func next() {
+        guard movements.count > index else { return }
+        let currentSanMove = movements[index]
+        guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: index % 2 == 0 ? .white : .black) else {
+            return
+        }
+        print("""
+        SAN: \(currentSanMove.description)
+        Move: \(move.description)
+        """
+        )
+        try? game.execute(move: move)
+        index += 1
+    }
+    
+    func undoMove() {
+        guard let move = game.undoMove() else { return }
+        print("""
+        undo Move: \(move.description)
+        """)
+        index -= 1
+    }
+    
+    func pieceInfo() -> [SquareInfo] {
+        let b: [Square] = Square.allCases
+        let c = b.map { square in
+            let id = game.token.token[square.rawValue]
+            return SquareInfo(id: id, piece: game.board[square], square: square)
+        }
+        return c
+    }
+}
+
+public struct SquareInfo: Identifiable {
+    public var id: String
+    public var piece: Piece?
+    public var square: Square
 }
 
 public struct BoardView: View {
@@ -35,22 +86,41 @@ public struct BoardView: View {
     public init() {}
     
     public var body: some View {
-        VStack(alignment: .center) {
-            GeometryReader { geo in
-                let side = min(geo.size.width, geo.size.height)
-                ZStack {
-                    background()
-                    piecesView(with: geo)
-                    draggedPieceView()
+        VStack {
+            VStack(alignment: .center) {
+                GeometryReader { geo in
+                    let side = min(geo.size.width, geo.size.height)
+                    ZStack {
+                        background()
+                        piecesView(with: geo)
+                        draggedPieceView()
+                    }
+                    .frame(width: side, height: side)
                 }
-                .frame(width: side, height: side)
             }
-//            Button("Flip") {
-//                viewModel.orientation.toggle()
-//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
-//            }
+            
+            Button("Flip") {
+                viewModel.orientation.toggle()
+                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+            }
+            Button("next Move") {
+                withAnimation(.snappy) {
+                    viewModel.next()
+                }
+            }
+            
+            Button("undo Move") {
+                withAnimation(.smooth) {
+                    viewModel.undoMove()
+                }
+            }
+            
         }
+        .onAppear {
+            try? viewModel.didLoad()
+        }
+        
     }
     
     @ViewBuilder
@@ -64,39 +134,59 @@ public struct BoardView: View {
         )
     }
     
+    @ViewBuilder
     func piecesView(with geometry: GeometryProxy) -> some View {
-        LazyVGrid(columns: columns, spacing: 0) {
-            ForEach(Square.gridCollection(with: viewModel.orientation)) { square in
-                if let currentPiece = piece(in: square)  {
-                    PieceImageView(piece: currentPiece, pieceTheme: viewModel.pieceTheme)
-                        .offset(isDraggedPiece(currentPiece, square: square) ? viewModel.dragOffset : CGSizeZero)
-                        .opacity(isDraggedPiece(currentPiece, square: square) && viewModel.isDragging ? 0 : 1)
-                        .gesture(
-                            DragGesture()
-                                .onChanged({ gesture in
-                                    viewModel.isDragging = true
-                                    viewModel.draggedPiece = currentPiece
-                                    viewModel.initialSquare = square
-                                    viewModel.dragOffset = gesture.translation
-                                    
-                                })
-                                .onEnded({ gesture in
-                                    viewModel.isDragging = false
-                                    viewModel.finalSquare = calculateDraggedSquare(with: geometry, offset: gesture.translation)
-                                    withAnimation(.spring()) {
-                                        viewModel.draggedPiece = nil
-                                        viewModel.initialSquare = nil
-                                        viewModel.dragOffset = .zero
-                                    }
-                                })
-                        )
-                } else {
-                    Rectangle().fill(Color.clear)
-                        .frame(width: squareWidth(in: geometry), height: squareWidth(in: geometry))
-                }
+        let pieceInfoArray = viewModel.pieceInfo()
+        let squareSize = squareWidth(in: geometry)
+        ForEach(pieceInfoArray) { pieceInfo in
+            let position = pieceInfo.square.offset(orientation: viewModel.orientation, squareSize: squareSize)
+            if let piece = pieceInfo.piece {
+                PieceImageView(piece: piece, pieceTheme: viewModel.pieceTheme)
+                    .frame(width: squareSize, height: squareSize)
+                    .position(position)
+            } else {
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(width: squareSize, height: squareSize)
+                    .position(position)
             }
+            
         }
     }
+    
+//    func piecesView(with geometry: GeometryProxy) -> some View {
+//        LazyVGrid(columns: columns, spacing: 0) {
+//            ForEach(Square.gridCollection(with: viewModel.orientation)) { square in
+//                if let currentPiece = piece(in: square)  {
+//                    PieceImageView(piece: currentPiece, pieceTheme: viewModel.pieceTheme)
+//                        .offset(isDraggedPiece(currentPiece, square: square) ? viewModel.dragOffset : CGSizeZero)
+//                        .opacity(isDraggedPiece(currentPiece, square: square) && viewModel.isDragging ? 0 : 1)
+//                        .gesture(
+//                            DragGesture()
+//                                .onChanged({ gesture in
+//                                    viewModel.isDragging = true
+//                                    viewModel.draggedPiece = currentPiece
+//                                    viewModel.initialSquare = square
+//                                    viewModel.dragOffset = gesture.translation
+//                                    
+//                                })
+//                                .onEnded({ gesture in
+//                                    viewModel.isDragging = false
+//                                    viewModel.finalSquare = calculateDraggedSquare(with: geometry, offset: gesture.translation)
+//                                    withAnimation(.spring()) {
+//                                        viewModel.draggedPiece = nil
+//                                        viewModel.initialSquare = nil
+//                                        viewModel.dragOffset = .zero
+//                                    }
+//                                })
+//                        )
+//                } else {
+//                    Rectangle().fill(Color.clear)
+//                        .frame(width: squareWidth(in: geometry), height: squareWidth(in: geometry))
+//                }
+//            }
+//        }
+//    }
     
     @ViewBuilder
     func draggedPieceView() -> some View {

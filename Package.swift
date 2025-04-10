@@ -15,7 +15,7 @@ let package = Package(
             targets: ["FischerUI"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/NSStudent/fischer-core.git", from: "0.1.0")
+        .package(url: "https://github.com/NSStudent/fischer-core.git", branch: "feature/public-access")
     ],
     targets: [
         .target(
