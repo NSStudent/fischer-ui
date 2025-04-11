@@ -8,104 +8,6 @@
 import FischerCore
 import SwiftUI
 
-@Observable
-@MainActor
-class BoardViewModel {
-    var orientation: Orientation = .whiteSide
-    var draggedPiece: Piece? = nil
-    var dragOffset: CGSize = CGSizeZero
-    var initialSquare: Square? = nil
-    var isDragging: Bool = false
-    var finalSquare: Square? = nil {
-        didSet {
-            if let initialSquare, let finalSquare {
-                try? game.execute(move: initialSquare >>> finalSquare)
-            }
-        }
-    }
-    var boardTheme: BoardTheme = .take
-    var pieceTheme: PieceTheme = .cburnett
-    var game = Game()
-    var pgnGame: PGNGame = PGNGame.mockNag
-    var movements: [SANMove] = []
-    var nags: [NAG?] = []
-    var currentNag: NAG?
-    var index = 0
-    
-    func didLoad() throws {
-        if let fen = pgnGame.fen(), let position = Game.Position(fen: fen) {
-            game = try Game(position: position)
-        }
-        
-        movements = pgnGame.elements.map{ element in
-            [element.whiteMove, element.blackMove]
-        }.flatMap{$0}.compactMap{$0}
-        
-        nags = pgnGame.elements.map{ element in
-            [element.whiteEvaluation?.first, element.blackEvaluation?.first]
-        }.flatMap{$0}
-        
-        print(nags)
-    }
-    
-    func next() {
-        guard movements.count > index else { return }
-        let currentSanMove = movements[index]
-        guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: index % 2 == 0 ? .white : .black) else {
-            return
-        }
-        print("""
-        SAN: \(currentSanMove.description)
-        Move: \(move.description)
-        """
-        )
-        
-        currentNag = nags[index]
-        try? game.execute(move: move)
-        index += 1
-    }
-    
-    func undoMove() {
-        guard let move = game.undoMove() else { return }
-        print("""
-        undo Move: \(move.description)
-        """)
-        index -= 1
-        currentNag = nags[game.moveHistory.count > 0 ? game.moveHistory.count - 1 : 0]
-    }
-
-    func undoGame() {
-        for _ in 0..<game.moveCount {
-            let _ = game.undoMove()
-        }
-        index = 0
-        currentNag = nil
-    }
-
-    func forwardGame() {
-        for _ in 1...game.moveCount {
-            let _ = game.undoMove()
-        }
-        index = 0
-        currentNag = nil
-    }
-
-    func pieceInfo() -> [SquareInfo] {
-        let b: [Square] = Square.allCases
-        let c = b.map { square in
-            let id = game.token.token[square.rawValue]
-            return SquareInfo(id: id, piece: game.board[square], square: square)
-        }
-        return c
-    }
-}
-
-public struct SquareInfo: Identifiable {
-    public var id: String
-    public var piece: Piece?
-    public var square: Square
-}
-
 public struct BoardView: View {
     @State var viewModel = BoardViewModel()
     public let columns: [GridItem] = .init(repeating: .chessFile, count: 8)
@@ -214,7 +116,7 @@ public struct BoardView: View {
     @ViewBuilder
     func piecesView(with geometry: GeometryProxy) -> some View {
         let pieceInfoArray = viewModel.pieceInfo()
-        let squareSize = squareWidth(in: geometry)
+        let squareSize = geometry.squareWidth()
         ForEach(pieceInfoArray) { pieceInfo in
             let position = pieceInfo.square.offset(orientation: viewModel.orientation, squareSize: squareSize)
             if let piece = pieceInfo.piece {
@@ -233,7 +135,7 @@ public struct BoardView: View {
     
     @ViewBuilder
     func nagView(with geometry: GeometryProxy) -> some View {
-        let squareSize = squareWidth(in: geometry)
+        let squareSize = geometry.squareWidth()
         if let currentNag = viewModel.currentNag,
            !currentNag.symbol.isEmpty,
            let square = viewModel.game.moveHistory.last?.move.end{
@@ -250,7 +152,7 @@ public struct BoardView: View {
     
     @ViewBuilder
     func lastMoveArrowView(with geometry: GeometryProxy) -> some View {
-        let squareSize = squareWidth(in: geometry)
+        let squareSize = geometry.squareWidth()
         if let lastMove = viewModel.game.moveHistory.last?.move
         {
             ArrowView(fromSquare: lastMove.start, toSquare: lastMove.end, orientation: viewModel.orientation, squareSize: squareSize, color: .black, strokeWidth: 2)
@@ -260,19 +162,15 @@ public struct BoardView: View {
 
     @ViewBuilder
     func lastMoveHighlithed(with geometry: GeometryProxy) -> some View {
-        let squareSize = squareWidth(in: geometry)
+        let squareSize = geometry.squareWidth()
         if let lastMove = viewModel.game.moveHistory.last?.move
         {
-            let squareSize = squareWidth(in: geometry)
-            if let lastMove = viewModel.game.moveHistory.last?.move
-            {
-                HightlightSquare(color: .yellow)
+            HightlightSquare(color: viewModel.boardTheme.highlightColor)
                 .frame(width: squareSize, height: squareSize)
                 .position(lastMove.start.offset(orientation: viewModel.orientation, squareSize: squareSize))
-                HightlightSquare(color: .yellow)
+            HightlightSquare(color: .yellow)
                 .frame(width: squareSize, height: squareSize)
                 .position(lastMove.end.offset(orientation: viewModel.orientation, squareSize: squareSize))
-            }
         }
     }
 //    func piecesView(with geometry: GeometryProxy) -> some View {
@@ -364,11 +262,7 @@ public struct BoardView: View {
         return Square(file: file, rank: rank)
     }
     
-    func squareWidth(in geometry: GeometryProxy) -> CGFloat {
-        let min = min(geometry.size.width, geometry.size.height)
-        let squareSize = min / 8
-        return squareSize
-    }
+    
 }
 
 #Preview(traits: .fixedLayout(width: 500, height: 500)){
