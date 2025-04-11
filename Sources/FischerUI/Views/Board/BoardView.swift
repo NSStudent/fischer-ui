@@ -73,7 +73,23 @@ class BoardViewModel {
         index -= 1
         currentNag = nags[game.moveHistory.count > 0 ? game.moveHistory.count - 1 : 0]
     }
-    
+
+    func undoGame() {
+        for _ in 0..<game.moveCount {
+            let _ = game.undoMove()
+        }
+        index = 0
+        currentNag = nil
+    }
+
+    func forwardGame() {
+        for _ in 1...game.moveCount {
+            let _ = game.undoMove()
+        }
+        index = 0
+        currentNag = nil
+    }
+
     func pieceInfo() -> [SquareInfo] {
         let b: [Square] = Square.allCases
         let c = b.map { square in
@@ -104,6 +120,9 @@ public struct BoardView: View {
                     ZStack {
                         background()
                             .animation(nil, value: viewModel.orientation)
+                        lastMoveHighlithed(with: geo)
+                            .animation(nil, value: viewModel.game.board)
+                            .animation(nil, value: viewModel.orientation)
                         piecesView(with: geo)
                         lastMoveArrowView(with: geo)
                         draggedPieceView()
@@ -111,34 +130,69 @@ public struct BoardView: View {
                     }
                     .frame(width: side, height: side)
                 }
+                .aspectRatio(1, contentMode: .fit)
             }
-            
-            Button("Flip") {
-                withAnimation(.snappy) {
-                    viewModel.orientation.toggle()
+            HStack {
+
+                Button {
+                    withAnimation(.snappy) {
+                        viewModel.orientation.toggle()
+                    }
+                } label: {
+                    Image(systemName: "arrow.2.squarepath")
                 }
-//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
-            }
-            
-            Button("Change theme") {
-                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
-            }
-            
-            
-            Button("next Move") {
-                withAnimation(.snappy) {
-                    viewModel.next()
+
+                Spacer()
+
+                Button {
+                    withAnimation(.smooth) {
+                        viewModel.undoGame()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left.2")
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation(.snappy(duration: 0.3)) {
+                        viewModel.undoMove()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation(.snappy(duration: 0.3)) {
+                        viewModel.next()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                }
+
+                Spacer()
+
+                Button {
+                    print("pending")
+                } label: {
+                    Image(systemName: "chevron.right.2")
+                }
+
+                Spacer()
+
+                Button {
+                    viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+                    viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+                } label: {
+                    Image(systemName: "paintpalette")
                 }
             }
-            
-            Button("undo Move") {
-                withAnimation(.smooth) {
-                    viewModel.undoMove()
-                }
-            }
-            
+            .buttonStyle(.bordered)
+            .padding()
+            Spacer()
+
         }
         .onAppear {
             try? viewModel.didLoad()
@@ -202,6 +256,25 @@ public struct BoardView: View {
             ArrowView(fromSquare: lastMove.start, toSquare: lastMove.end, orientation: viewModel.orientation, squareSize: squareSize, color: .black, strokeWidth: 2)
         }
     }
+
+
+    @ViewBuilder
+    func lastMoveHighlithed(with geometry: GeometryProxy) -> some View {
+        let squareSize = squareWidth(in: geometry)
+        if let lastMove = viewModel.game.moveHistory.last?.move
+        {
+            let squareSize = squareWidth(in: geometry)
+            if let lastMove = viewModel.game.moveHistory.last?.move
+            {
+                HightlightSquare(color: .yellow)
+                .frame(width: squareSize, height: squareSize)
+                .position(lastMove.start.offset(orientation: viewModel.orientation, squareSize: squareSize))
+                HightlightSquare(color: .yellow)
+                .frame(width: squareSize, height: squareSize)
+                .position(lastMove.end.offset(orientation: viewModel.orientation, squareSize: squareSize))
+            }
+        }
+    }
 //    func piecesView(with geometry: GeometryProxy) -> some View {
 //        LazyVGrid(columns: columns, spacing: 0) {
 //            ForEach(Square.gridCollection(with: viewModel.orientation)) { square in
@@ -216,7 +289,7 @@ public struct BoardView: View {
 //                                    viewModel.draggedPiece = currentPiece
 //                                    viewModel.initialSquare = square
 //                                    viewModel.dragOffset = gesture.translation
-//                                    
+//
 //                                })
 //                                .onEnded({ gesture in
 //                                    viewModel.isDragging = false
