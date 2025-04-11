@@ -27,7 +27,7 @@ class BoardViewModel {
     var boardTheme: BoardTheme = .take
     var pieceTheme: PieceTheme = .cburnett
     var game = Game()
-    var pgnGame: PGNGame = PGNGame.mockNag
+    var pgnGame: PGNGame = PGNGame.mockFen
     var moveInfoList: [MoveInfo] = []
     var currentNag: NAG?
     var index = 0
@@ -35,6 +35,8 @@ class BoardViewModel {
     func didLoad() throws {
         if let fen = pgnGame.fen(), let position = Game.Position(fen: fen) {
             game = try Game(position: position)
+        } else {
+            game = Game()
         }
         
         moveInfoList = pgnGame.elements
@@ -45,6 +47,8 @@ class BoardViewModel {
             }
             .flatMap{$0}
             .compactMap{$0}
+        
+        index = 0
         
 //        movements = pgnGame.elements.map{ element in
 //            [element.whiteMove, element.blackMove]
@@ -74,6 +78,49 @@ class BoardViewModel {
         index += 1
     }
     
+    func moveToIndex(_ selectedIndex: Int) {
+        forwardGame()
+        moveTo(selectedIndex+1)
+    }
+    
+    func lastMove() {
+        for i in index..<moveInfoList.count {
+            guard moveInfoList.count > i else { return }
+            let currentSanMove = moveInfoList[i].sanMove
+            guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: moveInfoList[i].playerColor) else {
+                return
+            }
+            print("""
+            SAN: \(currentSanMove.description)
+            Move: \(move.description)
+            """
+            )
+            
+            currentNag = moveInfoList[i].nag
+            try? game.execute(move: move)
+        }
+        index = game.moveCount
+    }
+    
+    func moveTo(_ selectedIndex: Int) {
+        for i in index..<selectedIndex {
+            guard moveInfoList.count > i else { return }
+            let currentSanMove = moveInfoList[i].sanMove
+            guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: moveInfoList[i].playerColor) else {
+                return
+            }
+            print("""
+            SAN: \(currentSanMove.description)
+            Move: \(move.description)
+            """
+            )
+            
+            currentNag = moveInfoList[i].nag
+            try? game.execute(move: move)
+        }
+        index = game.moveCount
+    }
+    
     func undoMove() {
         guard let move = game.undoMove() else { return }
         print("""
@@ -92,6 +139,7 @@ class BoardViewModel {
     }
 
     func forwardGame() {
+        guard game.moveCount > 0 else { return }
         for _ in 1...game.moveCount {
             let _ = game.undoMove()
         }

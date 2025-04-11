@@ -16,90 +16,141 @@ public struct BoardView: View {
     
     public var body: some View {
         VStack {
-            VStack(alignment: .center) {
-                GeometryReader { geo in
-                    let side = min(geo.size.width, geo.size.height)
-                    ZStack {
-                        background()
-                            .animation(nil, value: viewModel.orientation)
-                        lastMoveHighlithed(with: geo)
-                            .animation(nil, value: viewModel.game.board)
-                            .animation(nil, value: viewModel.orientation)
-                        piecesView(with: geo)
-                        lastMoveArrowView(with: geo)
-                        draggedPieceView()
-                        nagView(with: geo)
-                    }
-                    .frame(width: side, height: side)
-                }
-                .aspectRatio(1, contentMode: .fit)
-            }
-            HStack {
-
-                Button {
-                    withAnimation(.snappy) {
-                        viewModel.orientation.toggle()
-                    }
-                } label: {
-                    Image(systemName: "arrow.2.squarepath")
-                }
-
-                Spacer()
-
-                Button {
-                    withAnimation(.smooth) {
-                        viewModel.undoGame()
-                    }
-                } label: {
-                    Image(systemName: "chevron.left.2")
-                }
-
-                Spacer()
-
-                Button {
-                    withAnimation(.snappy(duration: 0.3)) {
-                        viewModel.undoMove()
-                    }
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-
-                Spacer()
-
-                Button {
-                    withAnimation(.snappy(duration: 0.3)) {
-                        viewModel.next()
-                    }
-                } label: {
-                    Image(systemName: "chevron.right")
-                }
-
-                Spacer()
-
-                Button {
-                    print("pending")
-                } label: {
-                    Image(systemName: "chevron.right.2")
-                }
-
-                Spacer()
-
-                Button {
-                    viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-                    viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
-                } label: {
-                    Image(systemName: "paintpalette")
-                }
-            }
-            .buttonStyle(.bordered)
-            .padding()
+            boardView()
+            controllersView()
+            sanGrid()
             Spacer()
-
         }
         .onAppear {
             try? viewModel.didLoad()
         }
+    }
+    
+    @ViewBuilder
+    func sanGrid() -> some View {
+        let columns = [
+            GridItem(.flexible(minimum: 40, maximum: 200)),
+            GridItem(.flexible(minimum: 40, maximum: 200))
+        ]
         
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    if viewModel.moveInfoList.first?.playerColor == .black {
+                        Text("...")
+                    }
+                    ForEach(Array(viewModel.moveInfoList.enumerated()), id: \.element.id) { index, item in
+                        Text(item.description)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background {
+                                if let nag = item.nag, !nag.symbol.isEmpty {
+                                    nag.color
+                                }
+                                if index == viewModel.index - 1 {
+                                    viewModel.boardTheme.highlightColor
+                                }
+                            }
+                            .id(index)
+                            .onTapGesture {
+                                viewModel.moveToIndex(index)
+                            }// ← importante para hacer scroll
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .onChange(of: viewModel.index) { newIndex in
+                withAnimation {
+                    proxy.scrollTo(newIndex - 1, anchor: .center) // desplazamos al movimiento activo
+                }
+            }
+            .frame(maxHeight: 300)
+        }
+    }
+    
+    @ViewBuilder
+    func boardView() -> some View {
+        GeometryReader { geo in
+            let side = min(geo.size.width, geo.size.height)
+            ZStack {
+                background()
+                    .animation(nil, value: viewModel.orientation)
+                lastMoveHighlithed(with: geo)
+                    .animation(nil, value: viewModel.game.board)
+                    .animation(nil, value: viewModel.orientation)
+                piecesView(with: geo)
+                lastMoveArrowView(with: geo)
+                draggedPieceView()
+                nagView(with: geo)
+            }
+            .frame(width: side, height: side)
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
+    @ViewBuilder
+    func controllersView() -> some View {
+        HStack {
+            
+            Button {
+                withAnimation(.snappy) {
+                    viewModel.orientation.toggle()
+                }
+            } label: {
+                Image(systemName: "arrow.2.squarepath")
+            }
+
+            Spacer()
+
+            Button {
+                withAnimation(.smooth) {
+                    viewModel.undoGame()
+                }
+            } label: {
+                Image(systemName: "chevron.left.2")
+            }
+
+            Spacer()
+
+            Button {
+                withAnimation(.snappy(duration: 0.3)) {
+                    viewModel.undoMove()
+                }
+            } label: {
+                Image(systemName: "chevron.left")
+            }
+
+            Spacer()
+
+            Button {
+                withAnimation(.snappy(duration: 0.3)) {
+                    viewModel.next()
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+
+            Spacer()
+
+            Button {
+                withAnimation(.snappy(duration: 0.3)) {
+                    viewModel.lastMove()
+                }
+            } label: {
+                Image(systemName: "chevron.right.2")
+            }
+
+            Spacer()
+
+            Button {
+                testFen()
+//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+            } label: {
+                Image(systemName: "paintpalette")
+            }
+        }
+        .buttonStyle(.bordered)
+        .padding()
     }
     
     @ViewBuilder
@@ -260,6 +311,15 @@ public struct BoardView: View {
 
         guard let rank = toSquareRank, let file = toSquareFile else { return nil }
         return Square(file: file, rank: rank)
+    }
+    
+    public func testFen() {
+        if let copyString = UIPasteboard.general.string,
+           let pgn = try? PGNGameParser().parse(copyString) {
+            viewModel.pgnGame = pgn
+            try? viewModel.didLoad()
+            return
+        }
     }
     
     
