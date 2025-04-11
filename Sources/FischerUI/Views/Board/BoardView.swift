@@ -142,11 +142,18 @@ public struct BoardView: View {
             Spacer()
 
             Button {
-                testFen()
-//                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
-//                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
+                viewModel.boardTheme = [.green, .brown, .rhosgfx].randomElement() ?? .green
+                viewModel.pieceTheme = [.merida, .cburnett, .rhosgfx].randomElement() ?? .merida
             } label: {
                 Image(systemName: "paintpalette")
+            }
+            
+            Spacer()
+            
+            Button {
+                testFen()
+            } label: {
+                Image(systemName: "document.on.clipboard")
             }
         }
         .buttonStyle(.bordered)
