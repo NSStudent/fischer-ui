@@ -33,7 +33,7 @@ class BoardViewModel {
     var index = 0
     
     func didLoad() throws {
-        if let fen = pgnGame.fen(), let position = Game.Position(fen: fen) {
+        if let fen = pgnGame.fen(), let position = Position(fen: fen) {
             game = try Game(position: position)
         } else {
             game = Game()
@@ -49,16 +49,6 @@ class BoardViewModel {
             .compactMap{$0}
         
         index = 0
-        
-//        movements = pgnGame.elements.map{ element in
-//            [element.whiteMove, element.blackMove]
-//        }.flatMap{$0}.compactMap{$0}
-//        
-//        nags = pgnGame.elements.map{ element in
-//            [element.whiteEvaluation?.first, element.blackEvaluation?.first]
-//        }.flatMap{$0}
-//        
-//        print(nags)
     }
     
     func next() {
@@ -73,8 +63,17 @@ class BoardViewModel {
         """
         )
         
+        var promotionKind: Piece.Kind = .queen
+        switch currentSanMove {
+        case .san(let sanDefaultMove):
+            promotionKind = sanDefaultMove.promotionTo?.kind ?? .queen
+        case .kingsideCastling, .queensideCastling:
+            break
+        }
+        
         currentNag = moveInfoList[index].nag
-        try? game.execute(move: move)
+        
+        try? game.execute(move: move, promotion: promotionKind)
         index += 1
     }
     

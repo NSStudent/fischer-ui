@@ -41,17 +41,17 @@ public struct BoardView: View {
                     }
                     ForEach(Array(viewModel.moveInfoList.enumerated()), id: \.element.id) { index, item in
                         Text(item.description)
+//                            .foregroundColor(nagForegorundColor(item))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
                             .background {
-                                if let nag = item.nag, !nag.symbol.isEmpty {
-                                    nag.color
-                                }
                                 if index == viewModel.index - 1 {
                                     viewModel.boardTheme.highlightColor
+                                } else {
+                                    Color.clear
                                 }
                             }
-                            .id(index)
+//                            .id(index)
                             .onTapGesture {
                                 viewModel.moveToIndex(index)
                             }// ← importante para hacer scroll
@@ -65,6 +65,14 @@ public struct BoardView: View {
                 }
             }
             .frame(maxHeight: 300)
+        }
+    }
+    
+    func nagForegorundColor(item: MoveInfo) -> Color? {
+        if let nag = item.nag, !nag.symbol.isEmpty {
+            return nag.color
+        } else {
+            return nil
         }
     }
     
@@ -321,7 +329,7 @@ public struct BoardView: View {
     }
     
     public func testFen() {
-        if let copyString = UIPasteboard.general.string,
+        if let copyString = ClipboardHelper.paste(),
            let pgn = try? PGNGameParser().parse(copyString) {
             viewModel.pgnGame = pgn
             try? viewModel.didLoad()
@@ -334,4 +342,36 @@ public struct BoardView: View {
 
 #Preview(traits: .fixedLayout(width: 500, height: 500)){
     BoardView()
+}
+
+#if canImport(UIKit)
+import UIKit
+#endif
+
+#if canImport(AppKit)
+import AppKit
+#endif
+
+public class ClipboardHelper {
+    
+    public static func copy(text: String) {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = text
+        #elseif canImport(AppKit)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
+    }
+
+    public static func paste() -> String? {
+        #if canImport(UIKit)
+        return UIPasteboard.general.string
+        #elseif canImport(AppKit)
+        let pasteboard = NSPasteboard.general
+        return pasteboard.string(forType: .string)
+        #else
+        return nil
+        #endif
+    }
 }
