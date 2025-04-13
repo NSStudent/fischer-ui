@@ -54,7 +54,7 @@ class BoardViewModel {
     func next() {
         guard moveInfoList.count > index else { return }
         let currentSanMove = moveInfoList[index].sanMove
-        guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: moveInfoList[index].playerColor) else {
+        guard let move = try? Move(game: game, sanMove: currentSanMove) else {
             return
         }
         print("""
@@ -86,7 +86,7 @@ class BoardViewModel {
         for i in index..<moveInfoList.count {
             guard moveInfoList.count > i else { return }
             let currentSanMove = moveInfoList[i].sanMove
-            guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: moveInfoList[i].playerColor) else {
+            guard let move = try? Move(game: game, sanMove: currentSanMove) else {
                 return
             }
             print("""
@@ -105,7 +105,7 @@ class BoardViewModel {
         for i in index..<selectedIndex {
             guard moveInfoList.count > i else { return }
             let currentSanMove = moveInfoList[i].sanMove
-            guard let move = try? Move(board: game.board, sanMove: currentSanMove, turn: moveInfoList[i].playerColor) else {
+            guard let move = try? Move(game: game, sanMove: currentSanMove) else {
                 return
             }
             print("""
